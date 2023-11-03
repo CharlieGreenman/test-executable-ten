@@ -1,0 +1,27 @@
+name: Run Unit Tests
+
+on:
+  pull_request:
+    branches: [develop]
+  workflow_dispatch:
+jobs:
+  setup:
+    runs-on: ubuntu-22.04-medium
+    outputs:
+      test-chunks: ${{ steps['set-test-chunks'].outputs['test-chunks'] }}
+      test-chunk-ids: ${{ steps['set-test-chunk-ids'].outputs['test-chunk-ids'] }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "//npm.pkg.github.com/:_authToken=${{ secrets.GitHubToken }}" >> ~/.npmrc
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+          cache: 'npm'
+      - run: BRANCH=`echo ${GITHUB_REF/refs\/heads\//}`
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.9.0
+        with:
+          access_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install Dependencies
+        run: |
+          npm install
